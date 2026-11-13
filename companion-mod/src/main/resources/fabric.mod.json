@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "okina-companion",
+  "version": "${version}",
+  "name": "Okina Companion",
+  "description": "In-game extras for Okina Launcher. Hacks only turn on in profiles that allow them (like 2b2t).",
+  "authors": ["NothGaming"],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.okina.companion.OkinaCompanion"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11",
+    "java": ">=21"
+  }
+}

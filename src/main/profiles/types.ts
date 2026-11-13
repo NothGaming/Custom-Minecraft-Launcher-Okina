@@ -13,7 +13,9 @@ export type ModSource =
   /** Meteor Client, from the official site meteorclient.com. */
   | { type: 'meteor' }
   /** A direct download link. Leave `url` empty to skip the mod until it is filled in. */
-  | { type: 'url'; url: string; fileName: string };
+  | { type: 'url'; url: string; fileName: string }
+  /** A jar shipped with the launcher itself (e.g. the Okina companion mod), from the bundled mods folder. */
+  | { type: 'bundled'; fileName: string };
 
 export interface ProfileMod {
   /** Stable id used to track the installed file, e.g. "meteor-client". */
@@ -47,6 +49,11 @@ export interface Profile {
   loader: 'vanilla' | 'fabric';
   mods: ProfileMod[];
   server?: ProfileServer;
+  /**
+   * Turns on the hack modules in the Okina companion mod. Only for anarchy servers like 2b2t.
+   * Hacks also only run on servers in `server` when `server.lock` is set.
+   */
+  hacks?: boolean;
   /** Max RAM for the game in MB. */
   memoryMb: number;
   /** Shown as a warning badge in the UI (used for the 2b2t profile). */

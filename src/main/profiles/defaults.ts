@@ -16,11 +16,11 @@ export const DEFAULT_PROFILE: Profile = {
 };
 
 /**
- * 2b2t profile: Fabric + Meteor Client + Baritone, auto-joins 2b2t.org.
+ * 2b2t profile: Fabric + the Okina companion mod with hacks turned on.
+ * Locked to 2b2t.org, so the hacks can't be used on other servers by accident.
  *
- * 2b2t runs ViaVersion, so newer clients can usually join. The Minecraft version
- * here must match the Meteor build: Meteor only publishes builds for the newest
- * Minecraft version (older ones are on meteorclient.com/archive).
+ * 2b2t runs ViaVersion, so newer clients can usually join. The companion mod
+ * is built for 1.21.11; keep this version in sync with companion-mod/gradle.properties.
  */
 export const TWO_B_TWO_T_PROFILE: Profile = {
   id: '2b2t',
@@ -29,18 +29,16 @@ export const TWO_B_TWO_T_PROFILE: Profile = {
   loader: 'fabric',
   mods: [
     {
-      id: 'meteor-client',
-      name: 'Meteor Client',
-      source: { type: 'meteor' },
+      id: 'fabric-api',
+      name: 'Fabric API',
+      source: { type: 'modrinth', project: 'fabric-api' },
       required: true,
     },
     {
-      id: 'baritone',
-      name: 'Baritone',
-      // Meteor's site offers a Baritone build for the same version.
-      // Paste its direct download link here to have the launcher fetch it.
-      source: { type: 'url', url: '', fileName: 'baritone.jar' },
-      required: false,
+      id: 'okina-companion',
+      name: 'Okina Companion',
+      source: { type: 'bundled', fileName: 'okina-companion.jar' },
+      required: true,
     },
   ],
   server: {
@@ -48,9 +46,10 @@ export const TWO_B_TWO_T_PROFILE: Profile = {
     autoJoin: true,
     lock: true,
   },
+  hacks: true,
   memoryMb: 4096,
   warning:
-    'Hack mods. Only for anarchy servers like 2b2t. Using them on other servers will get you banned.',
+    'Hacks on. Only for anarchy servers like 2b2t. Using them on other servers will get you banned.',
   builtIn: true,
 };
 

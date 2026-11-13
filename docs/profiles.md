@@ -8,10 +8,11 @@ Each profile has its own game folder, so mods from one profile never end up in a
 | Profile | Version | Mods | Server |
 | --- | --- | --- | --- |
 | Default | 1.21.11, Fabric | none | none |
-| 2b2t (anarchy) | 1.21.11, Fabric | Meteor Client, Baritone (optional) | auto-joins `2b2t.org`, locked |
+| 2b2t (anarchy) | 1.21.11, Fabric | Fabric API, Okina companion mod with hacks on | auto-joins `2b2t.org`, locked |
 
-The 2b2t profile is for anarchy servers only. Hack mods get you banned almost everywhere else,
-which is why the profile locks itself to 2b2t.
+The 2b2t profile is for anarchy servers only. Hacks get you banned almost everywhere else,
+which is why a profile with `"hacks": true` must lock itself to a server. The hacks themselves
+are in the companion mod: see [okina-client.md](okina-client.md).
 
 ## Where things are stored
 
@@ -26,7 +27,8 @@ instances/
   default/              game folder for the Default profile
   2b2t/
     mods/
-      meteor-client-1.21.11-65.jar
+      fabric-api-0.141.3+1.21.11.jar
+      okina-companion.jar
       .okina-mods.json  mods installed by the launcher (others are left alone)
     okina-profile.json  read by the Okina companion mod
 ```
@@ -40,10 +42,11 @@ instances/
   "minecraftVersion": "1.21.11",
   "loader": "fabric",
   "mods": [
-    { "id": "meteor-client", "name": "Meteor Client", "source": { "type": "meteor" }, "required": true },
-    { "id": "baritone", "name": "Baritone", "source": { "type": "url", "url": "", "fileName": "baritone.jar" }, "required": false }
+    { "id": "fabric-api", "name": "Fabric API", "source": { "type": "modrinth", "project": "fabric-api" } },
+    { "id": "okina-companion", "name": "Okina Companion", "source": { "type": "bundled", "fileName": "okina-companion.jar" } }
   ],
   "server": { "address": "2b2t.org", "autoJoin": true, "lock": true },
+  "hacks": true,
   "memoryMb": 4096
 }
 ```
@@ -51,6 +54,7 @@ instances/
 Mod sources:
 
 - `{ "type": "modrinth", "project": "sodium" }`: picks the newest Fabric build for the profile's version and checks its hash
+- `{ "type": "bundled", "fileName": "okina-companion.jar" }`: a jar shipped with the launcher (copied from the bundled mods folder)
 - `{ "type": "meteor" }`: Meteor Client from meteorclient.com (the official site; ignore look-alike sites offering `.exe` installers)
 - `{ "type": "url", "url": "https://…", "fileName": "x.jar" }`: a direct link; an empty `url` skips the mod
 
@@ -88,15 +92,11 @@ already holds `--gameDir` and, for 2b2t, `--quickPlayMultiplayer 2b2t.org`.
 
 ## Server lock
 
-`--quickPlayMultiplayer` only auto-joins; it can't stop you from joining other servers.
-The real lock belongs in the Okina companion mod: on startup it reads `okina-profile.json`
-and, if `allowedServers` is set, blocks joining any other server.
+`--quickPlayMultiplayer` only auto-joins. The lock itself is in the companion mod: it reads
+`okina-profile.json` and disconnects you from any server not in `allowedServers`.
 
 ## To check
 
-- Meteor's endpoints (`/api/stats` and `/api/download` on meteorclient.com) are set in
-  `src/main/profiles/modSync.ts`. If Meteor changes them, update them there.
-- Baritone's download link is left empty. Paste the direct link from meteorclient.com into
-  `profiles/2b2t.json` to have it downloaded automatically.
-- If 2b2t stops accepting 1.21.11, change `minecraftVersion` in the 2b2t profile (Meteor builds
-  for older versions are on meteorclient.com/archive).
+- If 2b2t stops accepting 1.21.11, change `minecraftVersion` in the 2b2t profile and in
+  `companion-mod/gradle.properties`.
+- Meteor's endpoints (only used if you add a `meteor` mod to a profile) are in `src/main/profiles/modSync.ts`.

@@ -24,7 +24,7 @@ export async function prepareLaunch(
   await fs.mkdir(gameDir, { recursive: true });
 
   const { skippedMods } = profile.loader === 'fabric' && profile.mods.length > 0
-    ? await syncMods(profile, gameDir, onProgress)
+    ? await syncMods(profile, gameDir, onProgress, store.bundledModsDir)
     : { skippedMods: [] };
 
   await writeProfileInfo(profile, gameDir);
@@ -60,6 +60,7 @@ async function writeProfileInfo(profile: Profile, gameDir: string): Promise<void
   const info = {
     profileId: profile.id,
     profileName: profile.name,
+    hacks: profile.hacks === true,
     allowedServers: profile.server?.lock ? [profile.server.address] : null,
   };
   await fs.writeFile(path.join(gameDir, 'okina-profile.json'), JSON.stringify(info, null, 2) + '\n', 'utf8');

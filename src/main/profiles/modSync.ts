@@ -35,6 +35,8 @@ type Manifest = Record<string, ManifestEntry>;
 /** A resolved download: what file to fetch and how to check it. */
 interface Resolved {
   url: string;
+  /** Set for bundled mods: copy this file instead of downloading. */
+  localPath?: string;
   fileName: string;
   version: string;
   sha512?: string;
@@ -48,6 +50,7 @@ export async function syncMods(
   profile: Profile,
   gameDir: string,
   onProgress: (event: SyncProgress) => void = () => {},
+  bundledModsDir?: string,
 ): Promise<SyncResult> {
   const modsDir = path.join(gameDir, 'mods');
   await fs.mkdir(modsDir, { recursive: true });
@@ -63,7 +66,7 @@ export async function syncMods(
 
     let resolved: Resolved | null;
     try {
-      resolved = await resolveMod(mod, profile.minecraftVersion);
+      resolved = await resolveMod(mod, profile.minecraftVersion, bundledModsDir);
     } catch (err) {
       const reason = (err as Error).message;
       if (required) throw new Error(`${mod.name}: ${reason}`);
@@ -120,7 +123,7 @@ export async function syncMods(
   return { skippedMods };
 }
 
-async function resolveMod(mod: ProfileMod, mcVersion: string): Promise<Resolved | null> {
+async function resolveMod(mod: ProfileMod, mcVersion: string, bundledModsDir?: string): Promise<Resolved | null> {
   const source = mod.source;
   switch (source.type) {
     case 'modrinth':
@@ -131,6 +134,18 @@ async function resolveMod(mod: ProfileMod, mcVersion: string): Promise<Resolved 
       if (!source.url) return null;
       if (!source.url.startsWith('https://')) throw new Error('download link must start with https://');
       return { url: source.url, fileName: source.fileName, version: source.url };
+    case 'bundled': {
+      if (!bundledModsDir) throw new Error('no bundled mods folder configured');
+      const localPath = path.join(bundledModsDir, safeFileName(source.fileName));
+      const stat = await fs.stat(localPath).catch(() => null);
+      if (!stat) throw new Error(`${source.fileName} is missing from ${bundledModsDir} (build the companion mod first)`);
+      return {
+        url: '',
+        localPath,
+        fileName: safeFileName(source.fileName),
+        version: `${stat.size}-${stat.mtimeMs}`,
+      };
+    }
   }
 }
 
@@ -184,9 +199,14 @@ async function resolveMeteor(mcVersion: string): Promise<Resolved> {
 }
 
 async function download(resolved: Resolved, target: string): Promise<void> {
-  const res = await fetch(resolved.url, { headers: { 'User-Agent': USER_AGENT }, redirect: 'follow' });
-  if (!res.ok) throw new Error(`download failed (HTTP ${res.status})`);
-  const data = Buffer.from(await res.arrayBuffer());
+  let data: Buffer;
+  if (resolved.localPath) {
+    data = await fs.readFile(resolved.localPath);
+  } else {
+    const res = await fetch(resolved.url, { headers: { 'User-Agent': USER_AGENT }, redirect: 'follow' });
+    if (!res.ok) throw new Error(`download failed (HTTP ${res.status})`);
+    data = Buffer.from(await res.arrayBuffer());
+  }
 
   // A jar is a zip file, which always starts with "PK".
   if (data.length < 4 || data[0] !== 0x50 || data[1] !== 0x4b) {

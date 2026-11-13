@@ -21,7 +21,12 @@ export class ProfileStore {
   readonly instancesDir: string;
   private readonly selectedFile: string;
 
-  constructor(dataDir: string) {
+  /**
+   * @param dataDir      launcher data folder (app.getPath('userData'))
+   * @param bundledModsDir folder with jars shipped with the launcher, e.g. okina-companion.jar
+   *                     (in a packaged app: path.join(process.resourcesPath, 'mods'))
+   */
+  constructor(dataDir: string, readonly bundledModsDir: string = path.join(dataDir, 'bundled-mods')) {
     this.profilesDir = path.join(dataDir, 'profiles');
     this.instancesDir = path.join(dataDir, 'instances');
     this.selectedFile = path.join(this.profilesDir, '_selected.json');
@@ -120,11 +125,15 @@ export function validateProfile(value: unknown): Profile {
     if (ids.has(mod.id)) throw new Error(`duplicate mod id "${mod.id}"`);
     ids.add(mod.id);
     const t = mod.source?.type;
-    if (t !== 'modrinth' && t !== 'meteor' && t !== 'url') throw new Error(`mod "${mod.id}": unknown source`);
-    if (t === 'url' && !/^[\w.-]+\.jar$/.test(mod.source.fileName)) {
+    if (t !== 'modrinth' && t !== 'meteor' && t !== 'url' && t !== 'bundled') {
+      throw new Error(`mod "${mod.id}": unknown source`);
+    }
+    if ((t === 'url' || t === 'bundled') && !/^[\w.-]+\.jar$/.test(mod.source.fileName)) {
       throw new Error(`mod "${mod.id}": fileName must end in .jar`);
     }
   }
+  if (p.hacks !== undefined && typeof p.hacks !== 'boolean') throw new Error('"hacks" must be true or false');
+  if (p.hacks && !p.server?.lock) throw new Error('profiles with hacks must lock to a server');
   if (typeof p.memoryMb !== 'number' || p.memoryMb < 512) throw new Error('"memoryMb" must be at least 512');
   if (p.server && (typeof p.server.address !== 'string' || !p.server.address)) {
     throw new Error('server needs an "address"');
