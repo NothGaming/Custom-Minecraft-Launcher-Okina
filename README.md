@@ -10,6 +10,7 @@ Sign in with your Microsoft account, pick a version or a CurseForge modpack, and
 - **Microsoft account login**: sign in with the account that owns Minecraft and stay signed in
 - **One-click launch**: downloads the game, libraries and Java automatically
 - **Instances**: separate installs per version or modpack, with Fabric support
+- **Profiles**: switch between setups with their own mods and game folder, including a 2b2t profile with Meteor Client (see [docs/profiles.md](docs/profiles.md))
 - **CurseForge modpacks**: browse, install and update modpacks and mods from CurseForge
 - **Okina companion mod**: in-game extras such as inventory sort buttons
 - **Auto-updates**: the launcher keeps itself up to date
